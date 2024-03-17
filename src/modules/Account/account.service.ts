@@ -22,12 +22,14 @@ import {
   UnprocessableEntityError,
 } from 'src/config/exceptions';
 import { VerifyCodeInput } from '../PasswordToken/passwordToken.dtos';
+import { TokenService } from 'src/libs/jwt/token.service';
 
 @Injectable()
 export class AccountService {
   constructor(
     private accountRepository: AccountRepository,
-    private tokenService: PasswordTokenService,
+    private tokenService: TokenService,
+    private codeService: PasswordTokenService,
     private mailingService: MailingService
   ) {}
 
@@ -79,7 +81,7 @@ export class AccountService {
   }
 
   async validateCode(verifyCodeInput: VerifyCodeInput) {
-    const result = await this.tokenService.verifyToken(verifyCodeInput);
+    const result = await this.codeService.verifyToken(verifyCodeInput);
     if (!result) {
       throw new NotFoundError({
         message: 'Código inválido! - Tente novamente com um código diferente',
@@ -104,7 +106,7 @@ export class AccountService {
       resetPasswordInput.email
     );
 
-    const createdCode = await this.tokenService.create({
+    const createdCode = await this.codeService.create({
       accountId: account.id,
     });
 
@@ -129,7 +131,7 @@ export class AccountService {
 
     const hashedPassword = await this.hashPassword(password);
 
-    const isValid = await this.tokenService.verifyToken({
+    const isValid = await this.codeService.verifyToken({
       code,
       accountId,
     });
@@ -145,12 +147,12 @@ export class AccountService {
       accountId,
     });
 
-    await this.tokenService.deleteToken(accountId);
+    await this.codeService.deleteToken(accountId);
   }
 
   async accessAccount(
     accountInput: AccessAccountControllerInput
-  ): Promise<AccessAccountServiceOutput> {
+  ): Promise<object> {
     const credentialFromDatabase =
       await this.accountRepository.findAccountByEmail(accountInput.email);
 
@@ -167,10 +169,15 @@ export class AccountService {
       throw new CustomException('Credenciais inválidas', 401);
     }
 
-    return {
+    const sessionPayload = {
       id: credentialFromDatabase.id,
-      permissions: credentialFromDatabase.permissions,
-      name: credentialFromDatabase.name,
     };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.tokenService.access(sessionPayload, accountInput.remember),
+      this.tokenService.refresh(sessionPayload, accountInput.remember),
+    ]);
+
+    return { accessToken, refreshToken };
   }
 }

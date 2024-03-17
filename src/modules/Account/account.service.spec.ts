@@ -17,6 +17,9 @@ import {
   InternalServerError,
   NotFoundError,
 } from 'src/config/exceptions';
+import { TokenService } from 'src/libs/jwt/token.service';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 describe('AccountService Unit Tests', () => {
   let service: AccountService;
@@ -48,8 +51,11 @@ describe('AccountService Unit Tests', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        ConfigService,
+        JwtService,
         AccountService,
         PrismaService,
+        TokenService,
         { provide: AccountRepository, useValue: accountRepositoryMock },
         { provide: PasswordTokenService, useValue: tokenServiceMock },
         { provide: MailingService, useValue: mailingServiceMock },

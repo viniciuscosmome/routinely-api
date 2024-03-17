@@ -6,6 +6,7 @@ import { AccountModule, TaskModule, GoalModule } from './modules';
 import PrismaModule from './libs/prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConfiguration } from './libs/jwt/jwt.configuration';
+import TokenModule from './libs/jwt/token.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { jwtConfiguration } from './libs/jwt/jwt.configuration';
     ThrottlerModule.forRoot(throttlerConfig),
     JwtModule.registerAsync(jwtConfiguration),
     PrismaModule,
+    TokenModule,
     AccountModule,
     TaskModule,
     GoalModule,

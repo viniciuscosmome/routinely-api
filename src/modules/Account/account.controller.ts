@@ -33,22 +33,17 @@ export class AccountController {
 
   @Post()
   @HttpCode(200)
-  async access(
-    @Body() { email, password, remember }: AccessAccountControllerInput
-  ) {
-    const accountData = await this.accountService.accessAccount({
-      email,
-      password,
+  async access(@Body() input: AccessAccountControllerInput) {
+    const session = await this.accountService.accessAccount({
+      email: input.email,
+      password: input.password,
+      remember: input.remember,
     });
 
-    const sessionData = this.sessionService.createSession({
-      accountId: accountData.id,
-      permissions: accountData.permissions,
-      name: accountData.name,
-      remember,
-    });
-
-    return sessionData;
+    return {
+      message: 'Conectado!',
+      data: session,
+    };
   }
 
   @Post('register')
