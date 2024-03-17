@@ -3,7 +3,6 @@ import { Injectable } from '@nestjs/common/';
 import {
   AccessAccountControllerInput,
   CreateAccountServiceOutput,
-  AccessAccountServiceOutput,
   CreateAccountControllerInput,
   ChangePasswordInput,
   ResetPasswordOutput,
