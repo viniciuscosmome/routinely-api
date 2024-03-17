@@ -68,9 +68,9 @@ export class AccountController {
     };
   }
 
-  @ApiBearerAuth('refresh')
   @Post('refresh')
   @HttpCode(200)
+  @ApiBearerAuth('refresh')
   async refresh(
     @Body() { refreshToken }: RefreshSessionControllerInput,
     @Req() request: Request
@@ -87,6 +87,7 @@ export class AccountController {
   }
 
   @Post('resetpassword')
+  @HttpCode(200)
   async resetPassword(@Body() resetPasswordInput: ResetPasswordInput) {
     try {
       return await this.accountService.resetPassword(resetPasswordInput);
@@ -96,6 +97,7 @@ export class AccountController {
   }
 
   @Post('validatecode')
+  @HttpCode(200)
   async validateCode(@Body() validateTokenInput: ValidateTokenInput) {
     try {
       await this.accountService.validateCode(validateTokenInput);
@@ -106,6 +108,7 @@ export class AccountController {
   }
 
   @Put('changepassword')
+  @HttpCode(200)
   async changePassword(@Body() changePasswordInput: ChangePasswordInput) {
     try {
       await this.accountService.changePassword(changePasswordInput);
