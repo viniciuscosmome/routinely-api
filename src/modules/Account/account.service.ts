@@ -15,6 +15,7 @@ import { PasswordTokenService } from '../PasswordToken/passwordToken.service';
 import { MailingService } from '../Mailing/mailing.service';
 import {
   AuthorizationError,
+  CustomException,
   DataValidationError,
   InternalServerError,
   NotFoundError,
@@ -75,8 +76,6 @@ export class AccountService {
         message: 'Conta criada!',
       };
     }
-
-    // todo: logger ({ location: 'SRC:MODULES:ACCOUNT:ACCOUNT_SERVICE::CREATE_ACCOUNT' });
   }
 
   async validateCode(verifyCodeInput: VerifyCodeInput) {
@@ -156,7 +155,7 @@ export class AccountService {
       await this.accountRepository.findAccountByEmail(accountInput.email);
 
     if (!credentialFromDatabase) {
-      throw new AuthorizationError({});
+      throw new CustomException('Credenciais inválidas', 401);
     }
 
     const validatePass = await this.comparePassword(
@@ -165,7 +164,7 @@ export class AccountService {
     );
 
     if (!validatePass) {
-      throw new AuthorizationError({});
+      throw new CustomException('Credenciais inválidas', 401);
     }
 
     return {
