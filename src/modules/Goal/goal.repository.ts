@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateGoalInput, UpdateGoalInput } from './goal.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/libs/prisma/prisma.service';
 
 @Injectable()
 export class GoalRepository {

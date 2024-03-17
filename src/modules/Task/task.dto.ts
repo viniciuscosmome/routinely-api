@@ -14,8 +14,8 @@ import {
 } from 'class-validator';
 import { DateRegex, MonthRegex, YearRegex } from 'src/config/constants';
 import { responses } from 'src/config/responses';
-import { IsEarlierThanCurrentDate } from 'src/utils/decorators/isEarlierThanCurrentDate';
-import { IsValidMonth } from 'src/utils/decorators/isValidMonth';
+import { IsEarlierThanCurrentDate } from 'src/decorators/validator/isEarlierThanCurrentDate';
+import { IsValidMonth } from 'src/decorators/validator/isValidMonth';
 
 export class CreateOneDto {
   @ApiProperty({ example: 'Uma atividade normal' })

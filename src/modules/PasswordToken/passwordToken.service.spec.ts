@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/libs/prisma/prisma.service';
 import { PasswordTokenService } from './passwordToken.service';
 import { PasswordTokenRepository } from './passwordToken.repository';
 import * as crypto from 'crypto';

@@ -8,6 +8,7 @@ import {
   IsHexadecimal,
   IsString,
 } from 'class-validator';
+import { NameRegex } from 'src/config/constants';
 import { responses } from 'src/config/responses';
 
 class AccountBaseDto {
@@ -21,13 +22,11 @@ class AccountBaseDto {
   updatedAt: Date;
 }
 
-const nameRegex = /^[a-zA-ZÀ-ÿ ]+$/;
-
 export class CreateAccountControllerInput {
   @ApiProperty({ example: 'John Doe' })
   @IsNotEmpty({ message: responses.notEmpty })
   @IsString({ message: responses.string })
-  @Matches(nameRegex, { message: responses.fullname })
+  @Matches(NameRegex, { message: responses.fullname })
   name: string;
 
   @ApiProperty({ example: 'example@string.com' })

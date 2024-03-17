@@ -13,7 +13,7 @@ import { CreateGoalInput, UpdateGoalInput } from './goal.dto';
 import { GoalService } from './goal.service';
 import { Permissions, RequirePermissions, RolesGuard } from 'src/guards';
 import { Request } from 'express';
-import { CREDENTIALS_KEY } from 'src/utils/constants';
+import { CREDENTIALS_KEY } from 'src/config/constants';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ThrottlerGuard } from '@nestjs/throttler';
 

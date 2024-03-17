@@ -2,7 +2,7 @@ import { UnprocessableEntityException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/libs/prisma/prisma.service';
 import { RoleLevel } from 'src/guards/roles.config';
 import { AccountService } from './account.service';
 import { AccountRepository } from './account.repository';

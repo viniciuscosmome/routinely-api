@@ -10,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Permissions, RequirePermissions, RolesGuard } from 'src/guards';
 import {
   CreateOneDto,
@@ -19,10 +19,11 @@ import {
   ReadOneDto,
   UpdateOneDto,
 } from './task.dto';
-import { AccountId } from 'src/utils/decorators/accountid.decorator';
+import { AccountId } from 'src/decorators/params/accountid.decorator';
 import { TaskService } from './task.service';
 
 @ApiTags('Tarefas')
+@ApiBearerAuth('access')
 @UseGuards(RolesGuard)
 @Controller('/tasks')
 export class TaskController {

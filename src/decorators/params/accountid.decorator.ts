@@ -1,5 +1,5 @@
 import { createParamDecorator, type ExecutionContext } from '@nestjs/common';
-import { CREDENTIALS_KEY } from '../constants';
+import { CREDENTIALS_KEY } from 'src/config/constants';
 
 export const AccountId = createParamDecorator(
   (_, context: ExecutionContext): string => {
