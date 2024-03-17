@@ -1,6 +1,5 @@
 import { UnprocessableEntityException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/libs/prisma/prisma.service';
 import { RoleLevel } from 'src/guards/roles.config';
@@ -22,22 +21,12 @@ import {
 describe('AccountService Unit Tests', () => {
   let service: AccountService;
 
-  const salt = process.env.SALT_DATA;
   const saltRounds = Number(process.env.SALT_ROUNDS);
   const resetPasswordTemplatePath = 'resetPassword.handlebars';
 
   jest.mock('bcrypt', () => ({
     hash: jest.fn(),
   }));
-
-  jest.mock('../../utils/hashes', () => ({
-    hashDataAsync: jest.fn().mockResolvedValue('hashed_email'),
-  }));
-
-  const createHashMock = {
-    update: jest.fn().mockReturnThis(),
-    digest: jest.fn(() => 'hashed_email'),
-  } as unknown as jest.Mocked<crypto.Hash>;
 
   const accountRepositoryMock = {
     alreadyExists: jest.fn().mockResolvedValue(true),
@@ -75,29 +64,10 @@ describe('AccountService Unit Tests', () => {
   });
 
   describe('When creating a new account', () => {
-    it('should hash email field from input', async () => {
+    it('verify if user already exists by email', async () => {
       jest
         .spyOn(accountRepositoryMock, 'alreadyExists')
         .mockResolvedValueOnce(false);
-      jest
-        .spyOn(crypto, 'createHash')
-        .mockImplementationOnce(() => createHashMock);
-
-      await service.createAccount(createAccountInput);
-
-      expect(createHashMock.update).toHaveBeenCalledWith(
-        createAccountInput.email + salt
-      );
-      expect(createHashMock.digest).toHaveReturnedWith('hashed_email');
-    });
-
-    it('verify if user already exists by using his hashed email', async () => {
-      jest
-        .spyOn(accountRepositoryMock, 'alreadyExists')
-        .mockResolvedValueOnce(false);
-      jest
-        .spyOn(crypto, 'createHash')
-        .mockImplementationOnce(() => createHashMock);
       const accountRepositorySpy = jest.spyOn(
         accountRepositoryMock,
         'alreadyExists'
@@ -105,7 +75,9 @@ describe('AccountService Unit Tests', () => {
 
       await service.createAccount(createAccountInput);
 
-      expect(accountRepositorySpy).toHaveBeenCalledWith('hashed_email');
+      expect(accountRepositorySpy).toHaveBeenCalledWith(
+        createAccountInput.email
+      );
     });
 
     it('it throws if user already exists', async () => {
@@ -139,14 +111,10 @@ describe('AccountService Unit Tests', () => {
     });
 
     it('it should create a new account with correct data', async () => {
-      // hashing password
       jest.spyOn(bcrypt, 'hash').mockImplementation(() => {
         return new Promise((resolve) => resolve('hashed_password'));
       });
-      // hashing email
-      jest
-        .spyOn(crypto, 'createHash')
-        .mockImplementationOnce(() => createHashMock);
+
       const accountRepositorySpy = jest.spyOn(
         accountRepositoryMock,
         'createAccount'
@@ -155,7 +123,7 @@ describe('AccountService Unit Tests', () => {
       await service.createAccount(createAccountInput);
 
       expect(accountRepositorySpy).toHaveBeenCalledWith({
-        email: 'hashed_email',
+        email: createAccountInput.email,
         password: 'hashed_password',
         permissions: RoleLevel.Standard,
         name: createAccountInput.name,
@@ -176,34 +144,13 @@ describe('AccountService Unit Tests', () => {
       .spyOn(tokenServiceMock, 'create')
       .mockResolvedValue({ code: '123789' });
 
-    it('should hash input email', async () => {
-      jest
-        .spyOn(accountRepositoryMock, 'alreadyExists')
-        .mockResolvedValueOnce(true);
-      jest
-        .spyOn(crypto, 'createHash')
-        .mockImplementationOnce(() => createHashMock);
-
-      await service.resetPassword(accountStub);
-
-      expect(createHashMock.update).toHaveBeenCalledWith(
-        accountStub.email + salt
-      );
-      expect(createHashMock.digest).toHaveReturnedWith('hashed_email');
-    });
-
     it('should verify if user exists with email', async () => {
       accountRepositoryMock.alreadyExists.mockResolvedValue(true);
-      jest
-        .spyOn(crypto, 'createHash')
-        .mockImplementationOnce(() => createHashMock);
 
       await service.resetPassword(resetPasswordInput);
 
-      expect(repositorySpy).toHaveBeenCalledWith('hashed_email');
+      expect(repositorySpy).toHaveBeenCalledWith(resetPasswordInput.email);
     });
-
-    it.todo('should verify if user exists with telephone');
 
     it("should throw error if account doesn't exists", async () => {
       accountRepositoryMock.alreadyExists.mockResolvedValue(false);
@@ -219,13 +166,10 @@ describe('AccountService Unit Tests', () => {
         accountRepositoryMock,
         'findAccountByEmail'
       );
-      jest
-        .spyOn(crypto, 'createHash')
-        .mockImplementationOnce(() => createHashMock);
 
       await service.resetPassword(resetPasswordInput);
 
-      expect(repositorySpy).toHaveBeenCalledWith('hashed_email');
+      expect(repositorySpy).toHaveBeenCalledWith(resetPasswordInput.email);
     });
 
     it('should call PasswordTokenService.create with correct params', async () => {
@@ -269,8 +213,6 @@ describe('AccountService Unit Tests', () => {
         new InternalServerError({ message: 'Erro ao tentar enviar e-mail' })
       );
     });
-
-    it.todo('check if user already has token');
   });
 
   describe('When changing user password', () => {

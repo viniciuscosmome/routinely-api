@@ -10,7 +10,6 @@ import {
   ResetPasswordInput,
 } from './account.dtos';
 import { AccountRepository } from './account.repository';
-import { hashDataAsync } from 'src/utils/hashes';
 import { RoleLevel } from 'src/guards';
 import { PasswordTokenService } from '../PasswordToken/passwordToken.service';
 import { MailingService } from '../Mailing/mailing.service';
@@ -52,19 +51,8 @@ export class AccountService {
       });
     }
 
-    const hashedEmail = await hashDataAsync(
-      createAccountInput.email,
-      process.env.SALT_DATA
-    );
-
-    if (!hashedEmail) {
-      throw new UnprocessableEntityError({
-        message: 'Erro desconhecido',
-      });
-    }
-
     const alreadyExists = await this.accountRepository.alreadyExists(
-      hashedEmail
+      createAccountInput.email
     );
 
     if (alreadyExists) {
@@ -76,7 +64,7 @@ export class AccountService {
 
     const hashedPassword = await this.hashPassword(createAccountInput.password);
     const created = await this.accountRepository.createAccount({
-      email: hashedEmail,
+      email: createAccountInput.email,
       password: hashedPassword,
       permissions: RoleLevel.Standard,
       name: createAccountInput.name,
@@ -105,18 +93,16 @@ export class AccountService {
   async resetPassword(
     resetPasswordInput: ResetPasswordInput
   ): Promise<ResetPasswordOutput> {
-    const hashedEmail = await hashDataAsync(
-      resetPasswordInput.email,
-      process.env.SALT_DATA
+    const accountExists = await this.accountRepository.alreadyExists(
+      resetPasswordInput.email
     );
 
-    const accountExists = await this.accountRepository.alreadyExists(
-      hashedEmail
-    );
-    if (!accountExists)
+    if (!accountExists) {
       throw new NotFoundError({ message: 'Conta não encontrada' });
+    }
+
     const account = await this.accountRepository.findAccountByEmail(
-      hashedEmail
+      resetPasswordInput.email
     );
 
     const createdCode = await this.tokenService.create({
@@ -166,12 +152,8 @@ export class AccountService {
   async accessAccount(
     accountInput: AccessAccountControllerInput
   ): Promise<AccessAccountServiceOutput> {
-    const hashedEmail = await hashDataAsync(
-      accountInput.email,
-      process.env.SALT_DATA
-    );
     const credentialFromDatabase =
-      await this.accountRepository.findAccountByEmail(hashedEmail);
+      await this.accountRepository.findAccountByEmail(accountInput.email);
 
     if (!credentialFromDatabase) {
       throw new AuthorizationError({});

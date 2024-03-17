@@ -16,26 +16,23 @@ import {
   RefreshSessionControllerInput,
   ResetPasswordInput,
   ChangePasswordInput,
-  DisconnectAccountControllerInput,
   ValidateTokenInput,
 } from './account.dtos';
 import { AccountService } from './account.service';
 import { SessionService } from '../Session/session.service';
-import { Permissions, RequirePermissions, RolesGuard } from 'src/guards';
 import { CREDENTIALS_KEY } from 'src/config/constants';
 
-@UseGuards(ThrottlerGuard, RolesGuard)
+@UseGuards(ThrottlerGuard)
 @Controller('auth')
+@ApiTags('Authentication')
 export class AccountController {
   constructor(
     private accountService: AccountService,
     private sessionService: SessionService
   ) {}
 
-  @ApiTags('Authentication')
-  @Post('')
+  @Post()
   @HttpCode(200)
-  @RequirePermissions([Permissions['101']])
   async access(
     @Body() { email, password, remember }: AccessAccountControllerInput
   ) {
@@ -54,9 +51,7 @@ export class AccountController {
     return sessionData;
   }
 
-  @ApiTags('Authentication')
   @Post('register')
-  @RequirePermissions([Permissions['100']])
   async create(
     @Body()
     { name, email, password, acceptedTerms }: CreateAccountControllerInput
@@ -73,11 +68,9 @@ export class AccountController {
     };
   }
 
-  @ApiTags('Authentication')
-  @ApiBearerAuth()
+  @ApiBearerAuth('refresh')
   @Post('refresh')
   @HttpCode(200)
-  @RequirePermissions([Permissions['000']])
   async refresh(
     @Body() { refreshToken }: RefreshSessionControllerInput,
     @Req() request: Request
@@ -93,29 +86,7 @@ export class AccountController {
     return newSession;
   }
 
-  @ApiTags('Authentication')
-  @ApiBearerAuth()
-  @Post('disconnect')
-  @HttpCode(200)
-  @RequirePermissions([Permissions['101'], Permissions['102']])
-  async disconnect(
-    @Body() { closeAllSessions }: DisconnectAccountControllerInput,
-    @Req() request: Request
-  ) {
-    const { sessionToken, accountId } = request[CREDENTIALS_KEY];
-
-    const response = await this.sessionService.closeSession({
-      closeAllSessions: !!closeAllSessions,
-      sessionToken,
-      accountId,
-    });
-
-    return response;
-  }
-
-  @ApiTags('Password reset')
   @Post('resetpassword')
-  @RequirePermissions([Permissions['001']])
   async resetPassword(@Body() resetPasswordInput: ResetPasswordInput) {
     try {
       return await this.accountService.resetPassword(resetPasswordInput);
@@ -124,9 +95,7 @@ export class AccountController {
     }
   }
 
-  @ApiTags('Validate code')
   @Post('validatecode')
-  @RequirePermissions([Permissions['001']])
   async validateCode(@Body() validateTokenInput: ValidateTokenInput) {
     try {
       await this.accountService.validateCode(validateTokenInput);
@@ -136,9 +105,7 @@ export class AccountController {
     }
   }
 
-  @ApiTags('Password reset')
   @Put('changepassword')
-  @RequirePermissions([Permissions['001']])
   async changePassword(@Body() changePasswordInput: ChangePasswordInput) {
     try {
       await this.accountService.changePassword(changePasswordInput);
